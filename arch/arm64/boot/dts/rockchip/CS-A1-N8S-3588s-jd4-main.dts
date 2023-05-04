@@ -285,8 +285,9 @@
 	status = "okay";
 };
 
+//no show LOGO
 &route_hdmi0{
-	status = "okay";
+	status = "disabled";
 };
 
 /* pcie2.0 */
