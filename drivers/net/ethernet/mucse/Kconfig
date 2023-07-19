@@ -54,33 +54,33 @@ config MXGBE_MSIX_COUNT
           MXGBE range [2,64].
 
 
-#config MXGBEVF
-#	tristate "Mucse(R) 1/10/25/40G PCI Express Virtual Function adapters support"
-#        depends on PCI
-#        help
-#          This driver supports Mucse(R) 1/10/25/40GbE PCI Express family of
-#          adapters.
-#
-#          To compile this driver as a module, choose M here. The module
-#          will be called rnpvf.
-#
-#config MXGBEVF_FIX_VF_BUG
-#        bool "Fix VF Bug Support(vf)"
-#        default y
-#        depends on MXGBEVF
-#        help
-#          Say Y here if you want to fix vf bug in the driver.
-#
-#          If unsure, say N.
-#
-#config MXGBEVF_FIX_MAC_PADDIN
-#	bool "Close Mac Padding Function(vf)"
-#	default y
-#        depends on MXGBEVF
-#        help
-#          Say Y here if you want to fix close mac padding in the driver.
-#
-#          If unsure, say N.
+config MXGBEVF
+	tristate "Mucse(R) 1/10/25/40G PCI Express Virtual Function adapters support"
+        depends on PCI
+        help
+          This driver supports Mucse(R) 1/10/25/40GbE PCI Express family of
+          adapters.
+
+          To compile this driver as a module, choose M here. The module
+          will be called rnpvf.
+
+config MXGBEVF_FIX_VF_BUG
+        bool "Fix VF Bug Support(vf)"
+        default y
+        depends on MXGBEVF
+        help
+          Say Y here if you want to fix vf bug in the driver.
+
+          If unsure, say N.
+
+config MXGBEVF_FIX_MAC_PADDIN
+	bool "Close Mac Padding Function(vf)"
+	default y
+        depends on MXGBEVF
+        help
+          Say Y here if you want to fix close mac padding in the driver.
+
+          If unsure, say N.
 
 #config MXGBEM
 #	tristate "Mucse(R) 1/10GbE PCI Express 2/4 ports adapters support"

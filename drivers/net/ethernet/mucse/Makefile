@@ -4,6 +4,6 @@
 #
 
 obj-$(CONFIG_MXGBE) += rnp/
-#obj-$(CONFIG_MXGBEVF) += rnpvf/
+obj-$(CONFIG_MXGBEVF) += rnpvf/
 #obj-$(CONFIG_MXGBEM) += rnpm/
 
