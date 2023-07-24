@@ -578,7 +578,7 @@ static int lt9211c_config(void)
     return 0;
 }
 
-static void delayed_func_for_lt9211c_state_check(struct work_struct *work)
+static __attribute__((unused)) void delayed_func_for_lt9211c_state_check(struct work_struct *work)
 {   
     //pr_info("enter delayed_func_for_lt9211c_state_check!\n");
     if(!strstr(lvds_parameter.lt9211c_mode_sel, "pattern_out"))
@@ -588,18 +588,22 @@ static void delayed_func_for_lt9211c_state_check(struct work_struct *work)
     schedule_delayed_work(&test_delayed_work,1*HZ);
 }
 
-//static void LT9211C_suspend(void)
-//{
-//    gpio_set_value(lt9211c_pdata->power_gpio, 0);
-//    msleep(100);
-//}
-//
-//static void LT9211C_resume(void)
-//{
-//    gpio_set_value(lt9211c_pdata->power_gpio, 1);
-//    msleep(100);
-//    lt9211c_config();
-//}
+EXPORT_SYMBOL(LT9211C_suspend);
+void LT9211C_suspend(void)
+{
+    if(lt9211c_client == NULL)
+        return;
+    gpio_set_value(lt9211c_pdata->power_gpio, 0);
+    msleep(100);
+}
+
+EXPORT_SYMBOL(LT9211C_resume);
+void LT9211C_resume(void)
+{
+    if(lt9211c_client == NULL)
+        return;
+    lt9211c_config();
+}
 
 static int LT9211C_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
@@ -649,10 +653,10 @@ static int LT9211C_probe(struct i2c_client *client, const struct i2c_device_id *
         pr_err( "Lontium Failed to configure GPIOs\n");
     }
 
-    lt9211c_config();
+    //lt9211c_config();
     
-    INIT_DELAYED_WORK(&test_delayed_work,delayed_func_for_lt9211c_state_check);
-    schedule_delayed_work(&test_delayed_work,1*HZ);
+    //INIT_DELAYED_WORK(&test_delayed_work,delayed_func_for_lt9211c_state_check);
+    //schedule_delayed_work(&test_delayed_work,1*HZ);
 
     return ret;
 

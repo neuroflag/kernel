@@ -340,6 +340,7 @@ u8 Drv_MipiRx_VidTiming_Sel(StructChipRxVidTiming *ptn_timing)
     u8 rtn = LONTIUM_FALSE;
     if ((g_stMipiRxVidTiming_Get.usHact == ptn_timing->usHact ) && ( g_stMipiRxVidTiming_Get.usVact == ptn_timing->usVact )){
         g_stMipiRxVidTiming_Get.ucFrameRate = Drv_VidChk_FrmRt_Get();
+        pr_info("FrameRate %d", g_stMipiRxVidTiming_Get.ucFrameRate);
         if ((g_stMipiRxVidTiming_Get.ucFrameRate > (ptn_timing->ucFrameRate - 3)) && 
                (g_stMipiRxVidTiming_Get.ucFrameRate < (ptn_timing->ucFrameRate + 3))){
                     g_stRxVidTiming.usVtotal = ptn_timing->usVtotal;
@@ -1195,12 +1196,12 @@ void Mod_MipiRx_StateHandler(StructChipRxVidTiming *ptn_timings)
 
         case STATE_CHIPRX_VIDEO_CHECK:
             
-            /*if (Mod_MipiRx_VidChk_Stable() == LONTIUM_TRUE)
+            if (Mod_MipiRx_VidChk_Stable() == LONTIUM_TRUE)
             {
                 pr_info("mipirx Video Check Stable");
                 g_stChipRx.pHdmiRxNotify(MIPIRX_VIDEO_ON_EVENT);
                 Mod_SystemRx_SetState(STATE_CHIPRX_PLAY_BACK);
-            }*/
+            }
 
             pr_info("mipirx Video Check Stable");
             g_stChipRx.pHdmiRxNotify(MIPIRX_VIDEO_ON_EVENT);

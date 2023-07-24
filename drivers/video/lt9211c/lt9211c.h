@@ -165,6 +165,8 @@ extern void Mod_SystemTx_SetState(u8 ucState);
 extern int LT9211C_write(u8 reg, u8 val);
 extern int LT9211C_read(u8 reg);
 
+extern void LT9211C_resume(void);
+extern void LT9211C_suspend(void);
 
 #endif
 
