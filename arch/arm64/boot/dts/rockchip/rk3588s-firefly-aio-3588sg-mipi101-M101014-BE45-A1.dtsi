@@ -61,7 +61,7 @@
 &dsi1 {
     status = "okay";
     //rockchip,lane-rate = <1000>;
-    firefly-check;
+    //firefly-check;
     dsi_panel: panel@0 {
         status = "okay";
         compatible = "simple-panel-dsi";
