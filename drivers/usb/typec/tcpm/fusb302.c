@@ -413,7 +413,7 @@ static int tcpm_init(struct tcpc_dev *dev)
 	ret = fusb302_i2c_read(chip, FUSB_REG_POWER, &data);
 	if (ret < 0)
 	       return ret;
-	pre_inited = data == 0x01 ? false : true;
+	pre_inited = data == FUSB_REG_POWER_PWR_MEDIUM ? true : false;
 
 	ret = fusb302_sw_reset(chip);
 	if (ret < 0)
