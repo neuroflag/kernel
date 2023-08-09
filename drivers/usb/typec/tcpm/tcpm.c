@@ -6174,13 +6174,6 @@ sink:
 			return ret;
 	}
 
-	ret = fwnode_property_read_u32(fwnode, "pd-revision",
-				       &pd_revision);
-	if (ret < 0)
-		port->typec_caps.pd_revision = 0x0300;
-	else
-		port->typec_caps.pd_revision = pd_revision & 0xffff;
-
 	return 0;
 }
 
