@@ -24,8 +24,8 @@
                 version-dtb-path0 = "v10";
                 version-adc-range1 = <1950 2150>;
                 version-dtb-path1 = "v12";
-                version-adc-range2 = <3950 4150>;
-                version-dtb-path2 = "v13";
+                //version-adc-range2 = <3950 4150>;
+                //version-dtb-path2 = "v13";
 		//status = "disabled";
         };
 
