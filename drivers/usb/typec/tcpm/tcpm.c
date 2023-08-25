@@ -34,6 +34,7 @@
 #include <trace/hooks/typec.h>
 #include <uapi/linux/sched/types.h>
 
+extern int have_battery;
 #define FOREACH_STATE(S)			\
 	S(INVALID_STATE),			\
 	S(TOGGLING),			\
@@ -6117,6 +6118,9 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
 	port->typec_caps.prefer_role = typec_find_power_role(cap_str);
 	if (port->typec_caps.prefer_role < 0)
 		return -EINVAL;
+
+	if (have_battery == 0)
+	        port->typec_caps.prefer_role = 0;
 sink:
 	/* Get sink pdos */
 	ret = fwnode_property_count_u32(fwnode, "sink-pdos");
