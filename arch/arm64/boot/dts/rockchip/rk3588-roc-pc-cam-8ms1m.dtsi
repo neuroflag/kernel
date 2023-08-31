@@ -48,7 +48,7 @@
 
 			csidphy0_out: endpoint@0 {
 				reg = <0>;
-				remote-endpoint = <&mipi2_csi2_input>;
+				remote-endpoint = <&mipi2_csi2_input0>;
 			};
 		};
 	};
@@ -104,8 +104,8 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			mipi2_csi2_input: endpoint@1 {
-				reg = <1>;
+			mipi2_csi2_input0: endpoint@0 {
+				reg = <0>;
 				remote-endpoint = <&csidphy0_out>;
 			};
 		};
@@ -148,7 +148,7 @@
 		};
 	};
 };
-
+/*
 &rkcif_mipi_lvds2_sditf {
 	status = "disabled";
 
@@ -158,11 +158,11 @@
 		};
 	};
 };
-
+*/
 &rkcif_mmu {
 	status = "okay";
 };
-
+/*
 &rkisp0 {
 	status = "disabled";
 };
@@ -184,3 +184,4 @@
 		};
 	};
 };
+*/

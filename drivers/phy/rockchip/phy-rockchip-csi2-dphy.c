@@ -418,6 +418,7 @@ rockchip_csi2_dphy_notifier_bound(struct v4l2_async_notifier *notifier,
 	struct sensor_async_subdev *s_asd = container_of(asd,
 					struct sensor_async_subdev, asd);
 	struct csi2_sensor *sensor;
+	struct media_link *link;
 	unsigned int pad, ret;
 
 	if (dphy->num_sensors == ARRAY_SIZE(dphy->sensors))
@@ -431,6 +432,20 @@ rockchip_csi2_dphy_notifier_bound(struct v4l2_async_notifier *notifier,
 	dev_info(dphy->dev, "dphy%d matches %s:bus type %d\n",
 		 dphy->phy_index, sd->name, s_asd->mbus.type);
 
+	if (dphy->dphy_hw->dphy_dev_num == 0) {
+		dphy->dphy_hw->lane_mode = dphy->lane_mode;
+	} else if (dphy->lane_mode != dphy->dphy_hw->lane_mode) {
+		dev_err(dphy->dev,
+                                "Err:csi2 dphy hw has been set as %s mode by phy%d, target mode is:%s\n",
+                                dphy->dphy_hw->lane_mode == LANE_MODE_FULL ? "full" : "split",
+                                dphy->dphy_hw->dphy_dev[0]->phy_index,
+                                dphy->lane_mode == LANE_MODE_FULL ? "full" : "split");
+		return -ENODEV;
+	}
+
+	dphy->dphy_hw->dphy_dev[dphy->dphy_hw->dphy_dev_num] = dphy;
+	dphy->dphy_hw->dphy_dev_num++;
+
 	for (pad = 0; pad < sensor->sd->entity.num_pads; pad++)
 		if (sensor->sd->entity.pads[pad].flags & MEDIA_PAD_FL_SOURCE)
 			break;
@@ -442,6 +457,15 @@ rockchip_csi2_dphy_notifier_bound(struct v4l2_async_notifier *notifier,
 
 		return -ENXIO;
 	}
+
+/* Set up link for dphy and csi */
+	link = list_first_entry(&dphy->sd.entity.links, struct media_link, list);
+	ret = media_entity_setup_link(link, MEDIA_LNK_FL_ENABLED);
+	if (ret) {
+                dev_err(dphy->dev,
+                        "failed to set up link\n");
+                return ret;
+        }
 
 	ret = media_create_pad_link(
 			&sensor->sd->entity, pad,
@@ -607,7 +631,6 @@ static int rockchip_csi2_dphy_attach_hw(struct csi2_dphy *dphy)
 	struct csi2_dphy_hw *dphy_hw;
 	struct device_node *np;
 	enum csi2_dphy_lane_mode target_mode;
-	int i;
 
 	if (dphy->phy_index % 3 == 0)
 		target_mode = LANE_MODE_FULL;
@@ -640,29 +663,10 @@ static int rockchip_csi2_dphy_attach_hw(struct csi2_dphy *dphy)
 
 	if (dphy_hw->lane_mode == LANE_MODE_UNDEF) {
 		dphy_hw->lane_mode = target_mode;
-	} else {
-		struct csi2_dphy *phy = dphy_hw->dphy_dev[0];
-
-		for (i = 0; i < dphy_hw->dphy_dev_num; i++) {
-			if (dphy_hw->dphy_dev[i]->lane_mode == dphy_hw->lane_mode) {
-				phy = dphy_hw->dphy_dev[i];
-				break;
-			}
-		}
-
-		if (target_mode != dphy_hw->lane_mode) {
-			dev_err(dphy->dev,
-				"Err:csi2 dphy hw has been set as %s mode by phy%d, target mode is:%s\n",
-				dphy_hw->lane_mode == LANE_MODE_FULL ? "full" : "split",
-				phy->phy_index,
-				target_mode == LANE_MODE_FULL ? "full" : "split");
-			return -ENODEV;
-		}
 	}
 
-	dphy_hw->dphy_dev[dphy_hw->dphy_dev_num] = dphy;
-	dphy_hw->dphy_dev_num++;
 	dphy->dphy_hw = dphy_hw;
+	dphy->lane_mode = target_mode;
 
 	return 0;
 }
