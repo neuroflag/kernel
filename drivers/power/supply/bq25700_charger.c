@@ -1392,6 +1392,9 @@ static void bq25700_charger_evt_handel(struct bq25700_device *charger,
 	    charger->typec1_status == USB_STATUS_PD)
 		return;
 
+	if (!have_battery)
+		goto NO_BAT;
+
 	/* Determine cable/charger type */
 	if (extcon_get_state(edev, EXTCON_CHG_USB_SDP) > 0) {
 		charger_state = USB_TYPE_USB_CHARGER;
@@ -1424,6 +1427,7 @@ static void bq25700_charger_evt_handel(struct bq25700_device *charger,
 		bq25700_enable_typec1(charger);
 	}
 
+NO_BAT:
 	bq25700_get_chip_state(charger, &state);
 	charger->state = state;
 	power_supply_changed(charger->supply_charger);
