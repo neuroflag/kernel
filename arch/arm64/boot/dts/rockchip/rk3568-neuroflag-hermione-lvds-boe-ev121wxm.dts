@@ -9,7 +9,7 @@
 #include "rk3568-firefly-itx-3568q.dtsi"
 
 / {
-    model = "ITX-3568Q HDMI+LVDS (Android)";
+    model = "Hermione-RK3568 HDMI+LVDS (Android)";
     compatible = "rockchip,rk3568-firefly-itx-3568q-lvds", "rockchip,rk3568";
 
     backlight:backlight {
@@ -68,8 +68,8 @@
             native-mode = <&timing0>;
             timing0: timing0 {
                 clock-frequency = <72000000>;
-                hactive = <800>;
-                vactive = <1280>;
+                hactive = <1280>;
+                vactive = <800>;
                 hfront-porch = <50>;
                 hsync-len = <10>;
                 hback-porch = <50>;
@@ -81,7 +81,7 @@
                 de-active = <0>;
                 pixelclk-active = <0>;
             };
-	    };
+        };
 
         ports {
             #address-cells = <1>;
@@ -95,6 +95,13 @@
                 };
             };
         };
+    };
+
+    tp_power: tp-power-regulator {
+        compatible = "regulator-fixed";
+        enable-active-high;
+        gpio = <&pca9555 PCA_IO1_1 GPIO_ACTIVE_HIGH>;
+        regulator-always-on;
     };
 };
 
@@ -170,34 +177,17 @@
     assigned-clock-parents = <&pmucru PLL_HPLL>, <&cru PLL_VPLL>;
 };
 
-//gslx680 tp
 &i2c1 {
     status = "okay";
     clock-frequency = <100000>;
-    //i2c-scl-rising-time-ns = <800>;
-    //i2c-scl-falling-time-ns = <100>;
-    gslx680: gslx680@41 {
+    ilitek: ilitek@41 {
         status = "okay";
-        compatible = "gslX680";
+        compatible = "ilitek,ili2520";
         reg = <0x41>;
-        screen_max_x = <800>;
-        screen_max_y = <1280>;
-        touch-gpio = <&gpio0 RK_PC7 IRQ_TYPE_LEVEL_LOW>;
-        reset-gpio = <&pca9555 PCA_IO1_0 GPIO_ACTIVE_HIGH>;
-        flip-x = <1>;
-        flip-y = <0>;
-        swap-xy = <0>;
-        gsl,fw = <1>;
-    };
-
-    mc3230_1: mc3230sensor@4c {
-        compatible = "gs_mc3230";
-        reg = <0x4c>;
-        type = <SENSOR_TYPE_ACCEL>;
-        irq_enable = <0>;
-        poll_delay_ms = <30>;
-        layout = <4>;
-        status = "disabled";
+        interrupt-parent = <&gpio0>;
+        interrupts = <RK_PC7 IRQ_TYPE_LEVEL_LOW>;
+        reset-gpios = <&pca9555 PCA_IO1_0 GPIO_ACTIVE_LOW>;
+        wakeup-source;
     };
 };
 
