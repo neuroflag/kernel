@@ -32,7 +32,9 @@
 
 &csi2_dphy1 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -62,7 +64,9 @@
 
 &csi2_dphy2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -112,6 +116,8 @@
 		power-gpios = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;
 		cam-power-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
 		pwdn-gpios = <&gpio3 RK_PB7 GPIO_ACTIVE_LOW>;
+
+		#define FF_COMPATIBLE
 		firefly,clkout-enabled-index = <1>;
 		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
@@ -153,7 +159,9 @@
 
 &mipi2_csi2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 
 	ports {
 		#address-cells = <1>;
@@ -185,7 +193,9 @@
 
 &mipi3_csi2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;

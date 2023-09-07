@@ -79,6 +79,7 @@ struct csi2_dphy {
 	enum csi2_dphy_lane_mode lane_mode;
 	const struct dphy_drv_data *drv_data;
 	struct rkmodule_csi_dphy_param dphy_param;
+	bool firefly_compatible;
 };
 
 struct dphy_hw_drv_data {
