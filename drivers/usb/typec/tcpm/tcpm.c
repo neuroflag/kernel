@@ -6119,8 +6119,6 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
 	if (port->typec_caps.prefer_role < 0)
 		return -EINVAL;
 
-	if (have_battery == 0)
-	        port->typec_caps.prefer_role = 0;
 sink:
 	/* Get sink pdos */
 	ret = fwnode_property_count_u32(fwnode, "sink-pdos");
