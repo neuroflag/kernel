@@ -9,6 +9,7 @@
 #include "rk3588-firefly-itx-3588j.dtsi"
 //#include "rk3588-firefly-demo.dtsi"
 #include "rk3588-firefly-itx-cam-8ms1m.dtsi"
+#include "rk3588-firefly-itx-cam-2ms2m.dtsi"
 
 / {
 	model = "Firefly ITX-3588J HDMI(Linux)";

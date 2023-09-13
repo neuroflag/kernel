@@ -24,6 +24,41 @@
 	};
 };
 
+&i2c7 {
+        status = "okay";
+        pinctrl-names = "default";
+	pinctrl-0 = <&i2c7m2_xfer>;
+
+        XC7160: XC7160b@1b{
+               compatible = "firefly,xc7160";
+               reg = <0x1b>;
+	       clocks = <&cru CLK_MIPI_CAMARAOUT_M1>;
+               clock-names = "xvclk";
+               pinctrl-names = "default";
+	       pinctrl-0 = <&mipim1_camera1_clk>;
+               power-domains = <&power RK3588_PD_VI>;
+
+               power-gpios = <&gpio3 RK_PB7 GPIO_ACTIVE_LOW>;
+               reset-gpios = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;
+               pwdn-gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_HIGH>;
+               //avdd-supply = <&vcc_mipidcphy0>;
+
+	       #define FF_COMPATIBLE 
+               firefly,clkout-enabled-index = <0>;
+               rockchip,camera-module-index = <0>;
+               rockchip,camera-module-facing = "back";
+               rockchip,camera-module-name = "NC";
+               rockchip,camera-module-lens-name = "NC";
+               port {
+                        xc7160_out0: endpoint {
+                               remote-endpoint = <&mipidphy0_in_ucam0>;
+                               data-lanes = <1 2 3 4>;
+                       };
+               };
+       };
+
+};
+
 &csi2_dphy0 {
 	status = "okay";
 #ifdef FF_COMPATIBLE
@@ -58,41 +93,6 @@
 
 &csi2_dphy0_hw {
 	status = "okay";
-};
-
-&i2c7 {
-        status = "okay";
-        pinctrl-names = "default";
-	pinctrl-0 = <&i2c7m2_xfer>;
-
-        XC7160: XC7160b@1b{
-               compatible = "firefly,xc7160";
-               reg = <0x1b>;
-	       clocks = <&cru CLK_MIPI_CAMARAOUT_M1>;
-               clock-names = "xvclk";
-               pinctrl-names = "default";
-	       pinctrl-0 = <&mipim1_camera1_clk>;
-               power-domains = <&power RK3588_PD_VI>;
-
-               power-gpios = <&gpio3 RK_PB7 GPIO_ACTIVE_LOW>;
-               reset-gpios = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;
-               pwdn-gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_HIGH>;
-               //avdd-supply = <&vcc_mipidcphy0>;
-
-	       #define FF_COMPATIBLE 
-               firefly,clkout-enabled-index = <0>;
-               rockchip,camera-module-index = <0>;
-               rockchip,camera-module-facing = "back";
-               rockchip,camera-module-name = "NC";
-               rockchip,camera-module-lens-name = "NC";
-               port {
-                        xc7160_out0: endpoint {
-                               remote-endpoint = <&mipidphy0_in_ucam0>;
-                               data-lanes = <1 2 3 4>;
-                       };
-               };
-       };
-
 };
 
 &mipi2_csi2 {

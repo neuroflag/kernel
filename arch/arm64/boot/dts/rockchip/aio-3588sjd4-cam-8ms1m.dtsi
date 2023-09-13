@@ -24,9 +24,45 @@
 	};
 };
 
+&i2c5 {
+        status = "okay";
+        pinctrl-names = "default";
+	pinctrl-0 = <&i2c5m3_xfer>;
+
+        XC7160: XC7160b@1b{
+               compatible = "firefly,xc7160";
+               reg = <0x1b>;
+	       clocks = <&cru CLK_MIPI_CAMARAOUT_M1>;
+               clock-names = "xvclk";
+               pinctrl-names = "default";
+	       pinctrl-0 = <&mipim1_camera1_clk>;
+               power-domains = <&power RK3588_PD_VI>;
+
+               power-gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_LOW>;
+               reset-gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_HIGH>;
+               pwdn-gpios = <&gpio1 RK_PA6 GPIO_ACTIVE_HIGH>;
+               
+	       #define FF_COMPATIBLE
+               firefly,clkout-enabled-index = <0>;
+               rockchip,camera-module-index = <0>;
+               rockchip,camera-module-facing = "back";
+               rockchip,camera-module-name = "NC";
+               rockchip,camera-module-lens-name = "NC";
+               port {
+                        xc7160_out2: endpoint {
+                               remote-endpoint = <&mipidphy0_in_ucam0>;
+                               data-lanes = <1 2 3 4>;
+                       };
+               };
+       };
+
+};
+
 &csi2_dphy0 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -48,7 +84,7 @@
 
 			csidphy0_out: endpoint@0 {
 				reg = <0>;
-				remote-endpoint = <&mipi2_csi2_input>;
+				remote-endpoint = <&mipi2_csi2_input0>;
 			};
 		};
 	};
@@ -58,43 +94,11 @@
 	status = "okay";
 };
 
-&i2c5 {
-        status = "okay";
-        pinctrl-names = "default";
-	pinctrl-0 = <&i2c5m3_xfer>;
-
-        XC7160: XC7160b@1b{
-               compatible = "firefly,xc7160";
-               reg = <0x1b>;
-	       clocks = <&cru CLK_MIPI_CAMARAOUT_M1>;
-               clock-names = "xvclk";
-               pinctrl-names = "default";
-	       pinctrl-0 = <&mipim1_camera1_clk>;
-               power-domains = <&power RK3588_PD_VI>;
-
-               power-gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_LOW>;
-               reset-gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_HIGH>;
-               pwdn-gpios = <&gpio1 RK_PA6 GPIO_ACTIVE_HIGH>;
-
-               //avdd-supply = <&vcc_mipidcphy0>;
-               firefly,clkout-enabled-index = <0>;
-               rockchip,camera-module-index = <0>;
-               rockchip,camera-module-facing = "back";
-               rockchip,camera-module-name = "NC";
-               rockchip,camera-module-lens-name = "NC";
-               port {
-                        xc7160_out2: endpoint {
-                               remote-endpoint = <&mipidphy0_in_ucam0>;
-                               data-lanes = <1 2 3 4>;
-                       };
-               };
-       };
-
-};
-
 &mipi2_csi2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -104,8 +108,8 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			mipi2_csi2_input: endpoint@1 {
-				reg = <1>;
+			mipi2_csi2_input0: endpoint@0 {
+				reg = <0>;
 				remote-endpoint = <&csidphy0_out>;
 			};
 		};
@@ -147,7 +151,7 @@
 		};
 	};
 };
-
+/*
 &rkcif_mipi_lvds2_sditf {
 	status = "disabled";
 
@@ -157,11 +161,11 @@
 		};
 	};
 };
-
+*/
 &rkcif_mmu {
 	status = "okay";
 };
-
+/*
 &rkisp0 {
 	status = "disabled";
 };
@@ -183,3 +187,4 @@
 		};
 	};
 };
+*/

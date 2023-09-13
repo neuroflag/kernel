@@ -5,6 +5,7 @@
  */
 / {
         vcc_mipidphy0: vcc-mipidcphy0-regulator {
+		status = "disabled";
                 compatible = "regulator-fixed";
                 gpio = <&gpio1 RK_PA1 GPIO_ACTIVE_HIGH>;
                 pinctrl-names = "default";
@@ -21,7 +22,9 @@
 
 &csi2_dphy1 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -43,7 +46,7 @@
 
 			csidphy1_out: endpoint@0 {
 				reg = <0>;
-				remote-endpoint = <&mipi2_csi2_input>;
+				remote-endpoint = <&mipi2_csi2_input1>;
 			};
 		};
 	};
@@ -51,7 +54,9 @@
 
 &csi2_dphy2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -80,7 +85,6 @@
 };
 
 
-
 &i2c5 {
         status = "okay";
         pinctrl-names = "default";
@@ -98,10 +102,13 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&mipim1_camera1_clk>;
 		power-domains = <&power RK3588_PD_VI>;
-		avdd-supply = <&vcc_mipidphy0>;
+		//avdd-supply = <&vcc_mipidphy0>;
 
+		#define FF_COMPATIBLE
+		cam-power-gpios = <&gpio1 RK_PA1 GPIO_ACTIVE_HIGH>;
 		power-gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_HIGH>;
 		pwdn-gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_LOW>;
+
 		firefly,clkout-enabled-index = <1>;
 		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
@@ -122,7 +129,7 @@
 		clock-names = "xvclk";
 		pinctrl-names = "default";
 		power-domains = <&power RK3588_PD_VI>;
-		avdd-supply = <&vcc_mipidphy0>;
+		//avdd-supply = <&vcc_mipidphy0>;
 		//reset-gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_LOW>;
 		pwdn-gpios = <&gpio1 RK_PA6 GPIO_ACTIVE_HIGH>;
 		firefly,clkout-enabled-index = <0>;
@@ -142,7 +149,9 @@
 
 &mipi2_csi2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 
 	ports {
 		#address-cells = <1>;
@@ -153,7 +162,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			mipi2_csi2_input: endpoint@1 {
+			mipi2_csi2_input1: endpoint@1 {
 				reg = <1>;
 				remote-endpoint = <&csidphy1_out>;
 			};
@@ -174,7 +183,9 @@
 
 &mipi3_csi2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;

@@ -9,6 +9,9 @@
 #include "aio-3588sjd4.dtsi"
 #include "aio-3588sjd4-cam-8ms1m.dtsi"
 #include "aio-3588sjd4-cam-dcphy-8ms1m.dtsi"
+#include "aio-3588sjd4-cam-2ms2mf.dtsi"
+#include "aio-3588sjd4-tf-hdmi-mipi-rk628.dtsi"
+
 #define WHICHDSI 1 /* 1 = 30pins mipi dsi1,  0 = 40pins mipi dsi0*/
 
 / {

@@ -9,6 +9,7 @@
 #include "roc-rk3588s-pc.dtsi"
 //#include "rk3588-firefly-demo.dtsi"
 #include "rk3588-roc-pc-cam-8ms1m.dtsi"
+#include "roc-rk3588s-pc-cam-2ms2mf.dtsi"
 #include "roc-rk3588s-pc-mipi-H245QBN02.dtsi"
 #include "roc-rk3588s-pc-v10-diff.dtsi"
 

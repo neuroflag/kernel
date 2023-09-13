@@ -26,7 +26,9 @@
 
 &csi2_dphy0 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -48,7 +50,7 @@
 
 			csidphy0_out: endpoint@0 {
 				reg = <0>;
-				remote-endpoint = <&mipi2_csi2_input>;
+				remote-endpoint = <&mipi2_csi2_input0>;
 			};
 		};
 	};
@@ -73,6 +75,7 @@
 	        reset-gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_LOW>;
 	        plugin-det-gpios = <&gpio1 RK_PA1 GPIO_ACTIVE_LOW>;
 
+		#define FF_COMPATIBLE
 	        rockchip,camera-module-index = <0>;
 	        rockchip,camera-module-facing = "back";
 	        rockchip,camera-module-name = "RK628-CSI";
@@ -90,7 +93,9 @@
 
 &mipi2_csi2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -100,8 +105,8 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			mipi2_csi2_input: endpoint@1 {
-				reg = <1>;
+			mipi2_csi2_input0: endpoint@0 {
+				reg = <0>;
 				remote-endpoint = <&csidphy0_out>;
 			};
 		};
@@ -143,7 +148,7 @@
 		};
 	};
 };
-
+/*
 &rkcif_mipi_lvds2_sditf {
 	status = "disabled";
 
@@ -153,11 +158,11 @@
 		};
 	};
 };
-
+*/
 &rkcif_mmu {
 	status = "okay";
 };
-
+/*
 &rkisp0 {
 	status = "disabled";
 };
@@ -179,3 +184,4 @@
 		};
 	};
 };
+*/

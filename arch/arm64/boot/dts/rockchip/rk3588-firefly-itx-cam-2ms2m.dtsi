@@ -5,7 +5,7 @@
  */
 / {
         vcc_mipidphy0: vcc-mipidcphy0-regulator {
-                //status = "disabled";
+                status = "disabled";
                 compatible = "regulator-fixed";
                 gpio = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
                 pinctrl-names = "default";
@@ -13,7 +13,7 @@
                 regulator-name = "vcc_mipidphy0";
                 enable-active-high;
         };
-
+#ifndef FF_COMPATIBLE
         flash_led: flash-led {
                 status = "okay";
                 compatible = "led,rgb13h";
@@ -25,13 +25,16 @@
                 rockchip,camera-module-index = <1>;
                 rockchip,camera-module-facing = "front";
         };
+#endif
 
 };
 
+#ifndef FF_COMPATIBLE
 &pwm14 {
         status = "okay";
         pinctrl-0 = <&pwm14m2_pins>;
 };
+#endif
 
 //&csi2_dcphy0_hw {
 //	status = "disabled";
@@ -52,7 +55,9 @@
 
 &csi2_dphy1 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -74,7 +79,7 @@
 
 			csidphy1_out: endpoint@0 {
 				reg = <0>;
-				remote-endpoint = <&mipi2_csi2_input>;
+				remote-endpoint = <&mipi2_csi2_input1>;
 			};
 		};
 	};
@@ -82,7 +87,9 @@
 
 &csi2_dphy2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -126,8 +133,10 @@
 		power-domains = <&power RK3588_PD_VI>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&mipim0_camera4_clk>;
-		avdd-supply = <&vcc_mipidphy0>;
+		//avdd-supply = <&vcc_mipidphy0>;
 
+		#define FF_COMPATIBLE
+		cam-power-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
 		power-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_HIGH>;
 		pwdn-gpios = <&gpio1 RK_PB1 GPIO_ACTIVE_LOW>;
 		firefly,clkout-enabled-index = <1>;
@@ -152,8 +161,8 @@
                pinctrl-names = "default";
                //pinctrl-0 = <&mipim0_camera3_clk>;
                power-domains = <&power RK3588_PD_VI>;
-		avdd-supply = <&vcc_mipidphy0>;
-		flash-leds = <&flash_led>;
+		//avdd-supply = <&vcc_mipidphy0>;
+	//	flash-leds = <&flash_led>;
 		//reset-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_HIGH>;
 		pwdn-gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_HIGH>;
 		firefly,clkout-enabled-index = <0>;
@@ -173,7 +182,9 @@
 
 &mipi2_csi2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 
 	ports {
 		#address-cells = <1>;
@@ -184,7 +195,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			mipi2_csi2_input: endpoint@1 {
+			mipi2_csi2_input1: endpoint@1 {
 				reg = <1>;
 				remote-endpoint = <&csidphy1_out>;
 			};
@@ -205,7 +216,9 @@
 
 &mipi3_csi2 {
 	status = "okay";
-
+#ifdef FF_COMPATIBLE
+	firefly-compatible;
+#endif
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
