@@ -7,6 +7,7 @@
  #define rk3588
  #include "rk3588-firefly-port.dtsi"
  #include "rk3588-diff.dtsi"
+ 
 
  / {
 	chosen: chosen {
@@ -349,7 +350,7 @@
 &pcie2x1l2{
 	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
 	rockchip,skip-scan-in-resume;
-	rockchip,perst-inactive-ms = <500>;
+	rockchip,perst-inactive-ms = <400>;
 	vpcie3v3-supply = <&vcc3v3_pcie20_eth0>;
 	status = "okay";
 };
@@ -367,68 +368,39 @@
 };
 
 &combphy1_ps {
-        status = "okay";
+    status = "okay";
 };
 
 &pcie2x1l0{
-        reset-gpios = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
-	vpcie3v3-supply = <&vcc3v3_pcie20_wifi>;
-        rockchip,skip-scan-in-resume;
-        rockchip,perst-inactive-ms = <500>;
-        status = "okay";
+    reset-gpios = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
+    vpcie3v3-supply = <&vcc3v3_pcie20_wifi>;
+    rockchip,skip-scan-in-resume;
+    rockchip,perst-inactive-ms = <500>;
+    status = "okay";
 };
+
 /* SATA */
 &sata2 {
-        status = "okay";
+    status = "okay";
 };
 
 &combphy2_psu {
-        status = "okay";
+    status = "okay";
 };
 
 &pcie2x1l1{
-	phys = <&combphy2_psu PHY_TYPE_PCIE>;
-        reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_HIGH>;
-	vpcie3v3-supply = <&vcc_sata_pwr_en>;
-        rockchip,skip-scan-in-resume;
-        rockchip,perst-inactive-ms = <500>;
-        status = "disabled";
+    status = "disabled";
 };
+
 &vcc_sata_pwr_en{
-        status = "okay";
-        gpio = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
-        regulator-min-microvolt = <3300000>;
-        regulator-max-microvolt = <3300000>;
-        regulator-always-on;
-        enable-active-high;
-        startup-delay-us = <5000>;
-        vin-supply = <&vcc12v_dcin>;
-};
-
-/* pcie3.0 x 4 Lane */
-&pcie30phy {
-	rockchip,pcie30-phymode = <PHY_MODE_PCIE_NABIBI>;
-        status = "disabled";
-	//status = "okay";
-};
-&pcie3x2 {
-	num-lanes = <1>;
-	reset-gpios = <&gpio3 RK_PD4 GPIO_ACTIVE_HIGH>;
-	vpcie3v3-supply = <&vcc3v3_pcie30>;
-        status = "disabled";
-};
-&pcie3x4 {
-	num-lanes = <1>;
-	reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
-	vpcie3v3-supply = <&vcc3v3_pcie30>;
-        status = "disabled";
-};
-
-&vcc3v3_pcie30{
-	gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
-	regulator-always-on;
-	startup-delay-us = <5000>;
-	status = "okay";
+    status = "okay";
+    gpio = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
+    regulator-min-microvolt = <3300000>;
+    regulator-max-microvolt = <3300000>;
+    regulator-always-on;
+    enable-active-high;
+    startup-delay-us = <5000>;
+    vin-supply = <&vcc12v_dcin>;
 };
 
 /* usb power */
@@ -467,6 +439,30 @@
 	status = "disabled";
 };
 
+/* i2c6: delete some dual-defined nodes */
+&i2c6 {
+	clock-frequency = <400000>; // For others Display Port Screen
+	status = "okay";
+	///delete-node/ gpio@21;
+    pca9555: gpio@21 {
+        status = "disabled";
+    };
+};
+
+/* rtc */
+&hym8563{
+	interrupt-parent = <&gpio0>;
+	interrupts = <RK_PB0 IRQ_TYPE_LEVEL_LOW>;
+	status = "okay";
+};
+
+&usbc0{
+	status = "okay";
+	interrupt-parent = <&gpio0>;
+	interrupts = <RK_PD3 IRQ_TYPE_LEVEL_LOW>;
+};
+
+
 /* display port0 */
 &spdif_tx2{
 	status = "okay";
@@ -486,9 +482,9 @@
 
 &vbus5v0_typec_pwr_en{
 	status = "okay";
+    regulator-boot-on;
 	gpio = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>; 
 };
-
 
 /* Key : Recovery */
 &adc_keys{
@@ -498,95 +494,6 @@
 		linux,code = <KEY_F12>;
 		press-threshold-microvolt = <642000>;
 	};
-};
-
-/* i2c6: delete some dual-defined nodes */
-&i2c6 {
-	clock-frequency = <400000>; // For others Display Port Screen
-	status = "okay";
-        hym8563: hym8563@51 {
-                compatible = "haoyu,hym8563";
-                reg = <0x51>;
-                #clock-cells = <0>;
-                clock-frequency = <32768>;
-                clock-output-names = "hym8563";
-                pinctrl-names = "default";
-                pinctrl-0 = <&hym8563_int>;
-                interrupt-parent = <&gpio0>;
-                interrupts = <RK_PB0 IRQ_TYPE_LEVEL_LOW>;
-                wakeup-source;
-		status = "okay";
-        };
-        usbc0: fusb302@22 {
-                compatible = "fcs,fusb302";
-                reg = <0x22>;
-                interrupt-parent = <&gpio0>;
-                interrupts = <RK_PD3 IRQ_TYPE_LEVEL_LOW>;
-                pinctrl-names = "default";
-                pinctrl-0 = <&usbc0_int>;
-                vbus-supply = <&vbus5v0_typec_pwr_en>;
-                status = "okay";
-
-                ports {
-                        #address-cells = <1>;
-                        #size-cells = <0>;
-
-                        port@0 {
-                                reg = <0>;
-                                usbc0_role_sw: endpoint@0 {
-                                        remote-endpoint = <&dwc3_0_role_switch>;
-                                };
-                        };
-                };
-
-                usb_con: connector {
-                        compatible = "usb-c-connector";
-                        label = "USB-C";
-                        data-role = "dual";
-                        power-role = "dual";
-                        try-power-role = "sink";
-                        op-sink-microwatt = <1000000>;
-                        sink-pdos =
-                                <PDO_FIXED(5000, 1000, PDO_FIXED_USB_COMM)>;
-                        source-pdos =
-                                <PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
-
-                        altmodes {
-                                #address-cells = <1>;
-                                #size-cells = <0>;
-
-                                altmode@0 {
-                                        reg = <0>;
-                                        svid = <0xff01>;
-                                        vdo = <0xffffffff>;
-                                };
-                        };
-                        ports {
-                                #address-cells = <1>;
-                                #size-cells = <0>;
-
-                                port@0 {
-                                        reg = <0>;
-                                        usbc0_orien_sw: endpoint {
-                                                remote-endpoint = <&usbdp_phy0_orientation_switch>;
-                                        };
-                                };
-
-                                port@1 {
-                                        reg = <1>;
-                                        dp_altmode_mux: endpoint {
-                                                remote-endpoint = <&usbdp_phy0_dp_altmode_mux>;
-                                        };
-                                };
-                        };
-                };
-        };
-
-//	/delete-node/ gpio@21;
-	pca9555: gpio@21 { 
-		status = "disabled";
-	};
-
 };
 
 &i2c3 {
