@@ -14,8 +14,8 @@
         pwr-delay-ms = <200>;
         enable-gpios = <&pca9555 PCA_IO0_2 GPIO_ACTIVE_HIGH>; // EDP_BL_EN
         display-timings {
-            native-mode = <&timing0>;
-            timing0: timing0 {
+            native-mode = <&edp_timing0>;
+            edp_timing0: timing0 {
                 clock-frequency = <140000000>;
                 hactive = <1920>;
                 vactive = <1080>;
