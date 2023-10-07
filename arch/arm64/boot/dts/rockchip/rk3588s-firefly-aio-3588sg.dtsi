@@ -117,6 +117,11 @@
        };
 };
 
+&vcc5v0_sys{
+        enable-active-high;
+        gpio = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
+};
+
 &pwm1 {
     pinctrl-0 = <&pwm1m0_pins>;
     status = "okay";
