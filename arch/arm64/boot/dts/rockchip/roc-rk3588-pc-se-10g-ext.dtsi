@@ -7,15 +7,17 @@
 
 
  / {
-/*
+
 	pcie_oe: pcie-oe {
                 compatible = "regulator-fixed";
                 regulator-name = "pcie_oe";
                 enable-active-high;
+		regulator-boot-on;
+		regulator-always-on;
                 gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
                 vin-supply = <&vcc12v_dcin>;
         };
-*/
+
 	pcie10g_rst: pcie10g-rst {
                 compatible = "regulator-fixed";
                 regulator-name = "pcie10g_rst";

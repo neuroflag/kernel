@@ -5,6 +5,27 @@
  */
 #include "roc-rk3588-pc-se.dtsi"
 
+/ {
+	pcie_oe1: pcie-oe1 {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie_oe1";
+		enable-active-high;
+		regulator-boot-on;
+		regulator-always-on;
+		gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+                vin-supply = <&vcc12v_dcin>;
+	};
+
+	pcie_oe2: pcie-oe2 {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie_oe2";
+		enable-active-high;
+		regulator-boot-on;
+		regulator-always-on;
+		gpios = <&gpio4 RK_PB3 GPIO_ACTIVE_HIGH>;
+                vin-supply = <&vcc12v_dcin>;
+	};
+};
 
 &combphy1_ps {
     status = "disabled";
@@ -66,8 +87,7 @@
 
 &vcc3v3_pcie30{
 	gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
-    regulator-always-on;
+    	regulator-always-on;
 	startup-delay-us = <5000>;
 	status = "okay";
 };
-

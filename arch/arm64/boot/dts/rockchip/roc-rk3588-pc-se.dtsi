@@ -215,7 +215,7 @@
 
 /* hdmi0 */
 &hdmi0 {
-	enable-gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
+	enable-gpios = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
@@ -237,7 +237,7 @@
 
 /* hdmi1 */
 &hdmi1 {
-	enable-gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+	enable-gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
