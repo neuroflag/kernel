@@ -27,10 +27,6 @@
 	};
 };
 
-&combphy1_ps {
-    status = "disabled";
-};
-
 &pcie2x1l0{
     phys = <&pcie30phy>;
     reset-gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
@@ -38,14 +34,6 @@
 	vpcie3v3-supply = <&vcc3v3_pcie30>;
     rockchip,perst-inactive-ms = <800>;
     status = "okay";
-};
-
-&sata2 {
-    status = "disabled";
-};
-
-&combphy2_psu {
-    status = "disabled";
 };
 
 &vcc_sata_pwr_en{
