@@ -3,7 +3,7 @@
  * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
  *
  */
-#include "roc-rk3588-pc-se.dtsi"
+#include "roc-rk3588-rt.dtsi"
 
 
  / {
