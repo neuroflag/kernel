@@ -10838,9 +10838,25 @@ rtl8125_init_software_variable(struct net_device *dev)
         if (tp->InitRxDescType == RX_DESC_RING_TYPE_3)
                 tp->rtl8125_rx_config |= EnableRxDescV3;
 
-        tp->NicCustLedValue = RTL_R16(tp, CustomLED);
+	
+	/* 
+	LED0: act , 10/100/1000/2.5G  0x18
+	LED1: link , 10/100/1000/2.5G 0x86
 
-        tp->wol_opts = rtl8125_get_hw_wol(tp);
+	bit 0: link 10M
+	bit 1: link 100M
+	bit 3: link 1000M
+	bit 5: link 2.5G
+	bit 9: 1,ACT/0,Full
+	bit 12: 1,High/0,Low Active
+	*/
+
+        RTL_W16(tp, 0x18, 0x022b);
+        RTL_W16(tp, 0x86, 0x102b);
+        
+        tp->NicCustLedValue = RTL_R16(tp, CustomLED);
+	
+	tp->wol_opts = rtl8125_get_hw_wol(tp);
         tp->wol_enabled = (tp->wol_opts) ? WOL_ENABLED : WOL_DISABLED;
 
         if (tp->mcfg == CFG_METHOD_6 || tp->mcfg == CFG_METHOD_7)
