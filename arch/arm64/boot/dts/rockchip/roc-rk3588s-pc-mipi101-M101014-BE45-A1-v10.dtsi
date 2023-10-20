@@ -11,6 +11,7 @@
 #include "rk3588-roc-pc-cam-8ms1m.dtsi"
 #include "roc-rk3588s-pc-tf-hdmi-mipi-rk628.dtsi"
 #include "roc-rk3588s-pc-cam-2ms2mf.dtsi"
+#include "roc-rk3588s-pc-cam-imx415.dtsi"
 #include "roc-rk3588s-pc-v10-diff.dtsi"
 #define WHICHDSI 0 /* dsi0 = 0,dsi1 = 1*/
 
