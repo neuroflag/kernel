@@ -63,6 +63,7 @@ enum LINEIN_TYPE{
 	LINEIN_TYPE2,    //AIO-3588SJD4 USE
 	LINEIN_TYPE3,    //ROC-RK3588-PC USE
 	LINEIN_TPYE4,   //AIO-3588Q USE
+	LINEIN_TPYE6,   //AIO-3588L USE
 };
 
 #define POLL_VAL 80
@@ -186,6 +187,13 @@ static struct jack_zone aio_3588q_zone[] ={
 	}
 };
 
+static struct jack_zone aio_3588l_zone[] ={
+       {
+               .min_mv = 2500,
+               .max_mv = UINT_MAX,
+               .type = INPUT_LIN1,
+       }
+};
 
 static struct jack_zone lin1_leftonly_lin2diff_zone[] ={
 	{
@@ -233,6 +241,8 @@ static void mic_det_work(struct work_struct *work)
 			status = jack_get_type(lin1_leftonly_lin2diff_zone,ARRAY_SIZE(lin1_leftonly_lin2diff_zone),value);
 		}else if (mc_data->linein_type == LINEIN_TPYE4){
 			status = jack_get_type(aio_3588q_zone,ARRAY_SIZE(aio_3588q_zone),value);
+		}else if (mc_data->linein_type == LINEIN_TPYE6){
+			status = jack_get_type(aio_3588l_zone,ARRAY_SIZE(aio_3588l_zone),value);
 		}else{
 			status = jack_get_type(lin1_lin2_lin2diff_zone,ARRAY_SIZE(lin1_lin2_lin2diff_zone),value);
 		}
