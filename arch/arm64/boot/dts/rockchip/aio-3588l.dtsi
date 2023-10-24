@@ -42,7 +42,26 @@
 		enable-active-high;
 		gpio = <&gpio4 RK_PB5 GPIO_ACTIVE_HIGH>;
 		status = "okay";
-};
+	};
+
+	vcc_ext_12v_pwr: vcc-ext-12v-pwr {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc_ext_12v_pwr";
+		regulator-always-on;
+		enable-active-high;
+		gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+
+	pcie_oe: pcie-oe {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie_oe";
+		enable-active-low;
+		regulator-boot-on;
+		regulator-always-on;
+		gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_LOW>;
+	};
+
 };
 
 /* recovery key*/
