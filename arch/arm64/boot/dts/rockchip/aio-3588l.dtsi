@@ -64,6 +64,19 @@
 
 };
 
+&i2c0 {
+	status = "okay";
+
+    pc9202@3c {
+        status = "okay";
+        compatible = "firefly,pc9202";
+        reg = <0x3c>;
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&pc9202_en_pin>;
+        wd-en-gpio = <&gpio2 RK_PC5 GPIO_ACTIVE_LOW>;
+    };
+};
+
 /* recovery key*/
 &adc_keys{
 	keyup-threshold-microvolt = <1800000>;
