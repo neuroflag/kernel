@@ -6,6 +6,7 @@
  *
  * V0.0X01.0X00 first version.
  * V0.0X01.0X01 add quick stream on/off
+ * V0.0X01.0X02 support slave mode
  */
 
 #include <linux/clk.h>
@@ -35,7 +36,7 @@
 #include <media/v4l2-mediabus.h>
 #include <media/v4l2-subdev.h>
 
-#define DRIVER_VERSION          KERNEL_VERSION(0, 0x01, 0x01)
+#define DRIVER_VERSION          KERNEL_VERSION(0, 0x01, 0x02)
 #define GC2053_NAME             "gc2053"
 #define GC2053_MEDIA_BUS_FMT    MEDIA_BUS_FMT_SGRBG10_1X10
 
@@ -113,7 +114,6 @@ struct gc2053_mode {
 };
 
 struct gc2053 {
-	struct device   *dev;
 	struct i2c_client   *client;
 	struct clk      *xvclk;
 	struct gpio_desc    *reset_gpio;
@@ -144,10 +144,10 @@ struct gc2053 {
 	unsigned int        pixel_rate;
 
 	u32         module_index;
-	u32		clkout_enabled_index;
 	const char      *module_facing;
 	const char      *module_name;
 	const char      *len_name;
+	enum rkmodule_sync_mode	sync_mode;
 	struct rkmodule_awb_cfg awb_cfg;
 	struct rkmodule_lsc_cfg lsc_cfg;
 	u8			flip;
@@ -305,6 +305,25 @@ static const struct regval gc2053_1920x1080_regs_2lane[] = {
 	{REG_NULL, 0x00},
 };
 
+static __maybe_unused const struct regval gc2053_master_mode_regs[] = {
+	{0xfe, 0x00},
+	{0x7f, 0x09},
+	{0x82, 0x01},
+	{0x83, 0x0c},
+	{0x84, 0x80},
+	{REG_NULL, 0x00},
+};
+
+static __maybe_unused const struct regval gc2053_slave_mode_regs[] = {
+	{0xfe, 0x00},
+	{0x7f, 0x09},
+	{0x82, 0x0a},
+	{0x83, 0x0b},
+	{0x84, 0x80},
+	{0x85, 0x51},
+	{REG_NULL, 0x00},
+};
+
 static const struct gc2053_mode supported_modes[] = {
 	{
 		.width = 1920,
@@ -427,7 +446,7 @@ gc2053_find_best_fit(struct gc2053 *gc2053, struct v4l2_subdev_format *fmt)
 	return &supported_modes[cur_best_fit];
 }
 
-static uint8_t gain_reg_table[29][4] = {
+static const uint8_t gain_reg_table[29][4] = {
 	{0x00, 0x00, 0x01, 0x00},
 	{0x00, 0x10, 0x01, 0x0c},
 	{0x00, 0x20, 0x01, 0x1b},
@@ -459,7 +478,7 @@ static uint8_t gain_reg_table[29][4] = {
 	{0x00, 0xce, 0x3f, 0x3f},
 };
 
-static  uint32_t gain_level_table[30] = {
+static const uint32_t gain_level_table[30] = {
 	64,
 	76,
 	91,
@@ -497,13 +516,16 @@ static int gc2053_set_gain(struct gc2053 *gc2053, u32 gain)
 	int ret;
 	uint8_t i = 0;
 	uint8_t total = 0;
-	uint8_t temp = 0;
+	uint32_t temp = 0;
 
 	total = sizeof(gain_level_table) / sizeof(u32) - 1;
-	for (i = 0; i < total; i++) {
+	for (i = 0; i <= total; i++) {
 		if ((gain_level_table[i] <= gain) && (gain < gain_level_table[i+1]))
 			break;
 	}
+
+	if (i > total)
+		i = total;
 
 	ret = gc2053_write_reg(gc2053->client, 0xb4, gain_reg_table[i][0]);
 	ret |= gc2053_write_reg(gc2053->client, 0xb3, gain_reg_table[i][1]);
@@ -558,7 +580,6 @@ static int gc2053_set_ctrl(struct v4l2_ctrl *ctrl)
 			vts += 10;
 		ret = gc2053_write_reg(gc2053->client, GC2053_REG_VTS_H, (vts >> 8) & 0x3f);
 		ret |= gc2053_write_reg(gc2053->client, GC2053_REG_VTS_L, vts & 0xff);
-
 		/* TBD: master and slave not sync to streaming, but except sleep 20ms below */
 		usleep_range(20000, 50000);
 		break;
@@ -722,17 +743,15 @@ static int __gc2053_power_on(struct gc2053 *gc2053)
 			dev_err(dev, "could not set pins\n");
 	}
 
-	if (gc2053->clkout_enabled_index){
-		ret = clk_set_rate(gc2053->xvclk, GC2053_XVCLK_FREQ);
-		if (ret < 0)
-			dev_warn(dev, "Failed to set xvclk rate (24MHz)\n");
-		if (clk_get_rate(gc2053->xvclk) != GC2053_XVCLK_FREQ)
-			dev_warn(dev, "xvclk mismatched, modes are based on 24MHz\n");
-		ret = clk_prepare_enable(gc2053->xvclk);
-		if (ret < 0) {
-			dev_err(dev, "Failed to enable xvclk\n");
-			return ret;
-		}
+	ret = clk_set_rate(gc2053->xvclk, GC2053_XVCLK_FREQ);
+	if (ret < 0)
+		dev_warn(dev, "Failed to set xvclk rate (24MHz)\n");
+	if (clk_get_rate(gc2053->xvclk) != GC2053_XVCLK_FREQ)
+		dev_warn(dev, "xvclk mismatched, modes are based on 24MHz\n");
+	ret = clk_prepare_enable(gc2053->xvclk);
+	if (ret < 0) {
+		dev_err(dev, "Failed to enable xvclk\n");
+		return ret;
 	}
 
 	ret = regulator_bulk_enable(GC2053_NUM_SUPPLIES, gc2053->supplies);
@@ -751,7 +770,7 @@ static int __gc2053_power_on(struct gc2053 *gc2053)
 	}
 	if (!IS_ERR(gc2053->reset_gpio)) {
 		gpiod_set_value_cansleep(gc2053->reset_gpio, 1);
-		usleep_range(500, 500);
+		usleep_range(100, 200);
 	}
 	if (!IS_ERR(gc2053->pwdn_gpio))
 		gpiod_set_value_cansleep(gc2053->pwdn_gpio, 0);
@@ -765,8 +784,7 @@ static int __gc2053_power_on(struct gc2053 *gc2053)
 	return 0;
 
 disable_clk:
-	if (gc2053->clkout_enabled_index)
-		clk_disable_unprepare(gc2053->xvclk);
+	clk_disable_unprepare(gc2053->xvclk);
 	return ret;
 }
 
@@ -777,8 +795,7 @@ static void __gc2053_power_off(struct gc2053 *gc2053)
 
 	if (!IS_ERR(gc2053->pwdn_gpio))
 		gpiod_set_value_cansleep(gc2053->pwdn_gpio, 1);
-	if (gc2053->clkout_enabled_index)
-		clk_disable_unprepare(gc2053->xvclk);
+	clk_disable_unprepare(gc2053->xvclk);
 
 	if (!IS_ERR(gc2053->reset_gpio))
 		gpiod_set_value_cansleep(gc2053->reset_gpio, 1);
@@ -847,9 +864,10 @@ static int gc2053_set_flip(struct gc2053 *gc2053, u8 mode)
 
 static int __gc2053_start_stream(struct gc2053 *gc2053)
 {
+	struct i2c_client *client = gc2053->client;
 	int ret;
 
-	ret = gc2053_write_array(gc2053->client, gc2053->cur_mode->reg_list);
+	ret = gc2053_write_array(client, gc2053->cur_mode->reg_list);
 	if (ret)
 		return ret;
 
@@ -858,11 +876,29 @@ static int __gc2053_start_stream(struct gc2053 *gc2053)
 	ret = v4l2_ctrl_handler_setup(&gc2053->ctrl_handler);
 	mutex_lock(&gc2053->mutex);
 
-	ret = gc2053_set_flip(gc2053, gc2053->flip);
+	ret |= gc2053_set_flip(gc2053, gc2053->flip);
 	if (ret)
 		return ret;
-	return gc2053_write_reg(gc2053->client, GC2053_REG_CTRL_MODE,
+	if (gc2053->sync_mode == INTERNAL_MASTER_MODE) {
+		ret = gc2053_write_array(client, gc2053_master_mode_regs);
+		if (ret)
+			dev_err(&client->dev,
+				"write internal master mode reg failed %d\n", ret);
+	} else if (gc2053->sync_mode == EXTERNAL_MASTER_MODE) {
+		ret = gc2053_write_array(client, gc2053_slave_mode_regs);
+		if (ret)
+			dev_err(&client->dev,
+				"write external master mode reg failed %d\n", ret);
+	} else if (gc2053->sync_mode == SLAVE_MODE) {
+		ret = gc2053_write_array(gc2053->client, gc2053_slave_mode_regs);
+		if (ret)
+			dev_err(&client->dev, "write slave mode reg failed %d\n", ret);
+	}
+
+	ret = gc2053_write_reg(gc2053->client, GC2053_REG_CTRL_MODE,
 							GC2053_MODE_STREAMING);
+
+	return ret;
 }
 
 static int __gc2053_stop_stream(struct gc2053 *gc2053)
@@ -903,15 +939,13 @@ static long gc2053_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 	long ret = 0;
 	struct rkmodule_hdr_cfg *hdr_cfg;
 	u32 stream = 0;
+	u32 *sync_mode = NULL;
 
 	switch (cmd) {
 	case RKMODULE_GET_HDR_CFG:
 		hdr_cfg = (struct rkmodule_hdr_cfg *)arg;
 		hdr_cfg->esp.mode = HDR_NORMAL_VC;
 		hdr_cfg->hdr_mode = gc2053->cur_mode->hdr_mode;
-		break;
-	case RKMODULE_SET_HDR_CFG:
-	case RKMODULE_SET_CONVERSION_GAIN:
 		break;
 	case RKMODULE_GET_MODULE_INFO:
 		gc2053_get_module_inf(gc2053, (struct rkmodule_inf *)arg);
@@ -933,6 +967,14 @@ static long gc2053_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 			ret = gc2053_write_reg(gc2053->client, GC2053_REG_CTRL_MODE,
 					       GC2053_MODE_SW_STANDBY);
 		break;
+	case RKMODULE_GET_SYNC_MODE:
+		sync_mode = (u32 *)arg;
+		*sync_mode = gc2053->sync_mode;
+		break;
+	case RKMODULE_SET_SYNC_MODE:
+		sync_mode = (u32 *)arg;
+		gc2053->sync_mode = *sync_mode;
+		break;
 	default:
 		ret = -ENOTTY;
 		break;
@@ -950,8 +992,8 @@ static long gc2053_compat_ioctl32(struct v4l2_subdev *sd,
 	struct rkmodule_lsc_cfg *lsc_cfg;
 	struct rkmodule_hdr_cfg *hdr;
 	long ret = 0;
-	u32 cg = 0;
 	u32 stream = 0;
+	u32 sync_mode;
 
 	switch (cmd) {
 	case RKMODULE_GET_MODULE_INFO:
@@ -962,8 +1004,11 @@ static long gc2053_compat_ioctl32(struct v4l2_subdev *sd,
 		}
 
 		ret = gc2053_ioctl(sd, cmd, inf);
-		if (!ret)
+		if (!ret) {
 			ret = copy_to_user(up, inf, sizeof(*inf));
+			if (ret)
+				ret = -EFAULT;
+		}
 		kfree(inf);
 		break;
 	case RKMODULE_AWB_CFG:
@@ -973,9 +1018,12 @@ static long gc2053_compat_ioctl32(struct v4l2_subdev *sd,
 			return ret;
 		}
 
-		ret = copy_from_user(awb_cfg, up, sizeof(*awb_cfg));
-		if (!ret)
-			ret = gc2053_ioctl(sd, cmd, awb_cfg);
+		if (copy_from_user(awb_cfg, up, sizeof(*awb_cfg))) {
+			kfree(awb_cfg);
+			return -EFAULT;
+		}
+
+		ret = gc2053_ioctl(sd, cmd, awb_cfg);
 		kfree(awb_cfg);
 		break;
 	case RKMODULE_LSC_CFG:
@@ -985,9 +1033,12 @@ static long gc2053_compat_ioctl32(struct v4l2_subdev *sd,
 			return ret;
 		}
 
-		ret = copy_from_user(lsc_cfg, up, sizeof(*lsc_cfg));
-		if (!ret)
-			ret = gc2053_ioctl(sd, cmd, lsc_cfg);
+		if (copy_from_user(lsc_cfg, up, sizeof(*lsc_cfg))) {
+			kfree(lsc_cfg);
+			return -EFAULT;
+		}
+
+		ret = gc2053_ioctl(sd, cmd, lsc_cfg);
 		kfree(lsc_cfg);
 		break;
 	case RKMODULE_GET_HDR_CFG:
@@ -998,8 +1049,11 @@ static long gc2053_compat_ioctl32(struct v4l2_subdev *sd,
 		}
 
 		ret = gc2053_ioctl(sd, cmd, hdr);
-		if (!ret)
+		if (!ret) {
 			ret = copy_to_user(up, hdr, sizeof(*hdr));
+			if (ret)
+				ret = -EFAULT;
+		}
 		kfree(hdr);
 		break;
 	case RKMODULE_SET_HDR_CFG:
@@ -1009,20 +1063,34 @@ static long gc2053_compat_ioctl32(struct v4l2_subdev *sd,
 			return ret;
 		}
 
-		ret = copy_from_user(hdr, up, sizeof(*hdr));
-		if (!ret)
-			ret = gc2053_ioctl(sd, cmd, hdr);
+		if (copy_from_user(hdr, up, sizeof(*hdr))) {
+			kfree(hdr);
+			return -EFAULT;
+		}
+
+		ret = gc2053_ioctl(sd, cmd, hdr);
 		kfree(hdr);
 		break;
-	case RKMODULE_SET_CONVERSION_GAIN:
-		ret = copy_from_user(&cg, up, sizeof(cg));
-		if (!ret)
-			ret = gc2053_ioctl(sd, cmd, &cg);
-		break;
 	case RKMODULE_SET_QUICK_STREAM:
-		ret = copy_from_user(&stream, up, sizeof(u32));
+		if (copy_from_user(&stream, up, sizeof(u32)))
+			return -EFAULT;
+
+		ret = gc2053_ioctl(sd, cmd, &stream);
+		break;
+	case RKMODULE_GET_SYNC_MODE:
+		ret = gc2053_ioctl(sd, cmd, &sync_mode);
+		if (!ret) {
+			ret = copy_to_user(up, &sync_mode, sizeof(u32));
+			if (ret)
+				ret = -EFAULT;
+		}
+		break;
+	case RKMODULE_SET_SYNC_MODE:
+		ret = copy_from_user(&sync_mode, up, sizeof(u32));
 		if (!ret)
-			ret = gc2053_ioctl(sd, cmd, &stream);
+			ret = gc2053_ioctl(sd, cmd, &sync_mode);
+		else
+			ret = -EFAULT;
 		break;
 	default:
 		ret = -ENOTTY;
@@ -1037,15 +1105,6 @@ static int gc2053_s_stream(struct v4l2_subdev *sd, int on)
 	struct gc2053 *gc2053 = to_gc2053(sd);
 	struct i2c_client *client = gc2053->client;
 	int ret = 0;
-	unsigned int fps;
-
-        fps = DIV_ROUND_CLOSEST(gc2053->cur_mode->max_fps.denominator,
-                                        gc2053->cur_mode->max_fps.numerator);
-
-        dev_info(gc2053->dev, "%s: on: %d, %dx%d@%d\n", __func__, on,
-                                gc2053->cur_mode->width,
-                                gc2053->cur_mode->height,
-                                fps);
 
 	mutex_lock(&gc2053->mutex);
 	on = !!on;
@@ -1083,9 +1142,7 @@ static int gc2053_g_frame_interval(struct v4l2_subdev *sd,
 	struct gc2053 *gc2053 = to_gc2053(sd);
 	const struct gc2053_mode *mode = gc2053->cur_mode;
 
-	mutex_lock(&gc2053->mutex);
 	fi->interval = mode->max_fps;
-	mutex_unlock(&gc2053->mutex);
 
 	return 0;
 }
@@ -1307,7 +1364,7 @@ static const struct v4l2_subdev_ops gc2053_subdev_ops = {
 	.pad    = &gc2053_pad_ops,
 };
 
-static int gc2053_runtime_resume(struct device *dev)
+static int __maybe_unused gc2053_runtime_resume(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
@@ -1317,7 +1374,7 @@ static int gc2053_runtime_resume(struct device *dev)
 	return 0;
 }
 
-static int gc2053_runtime_suspend(struct device *dev)
+static int __maybe_unused gc2053_runtime_suspend(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
@@ -1341,6 +1398,7 @@ static int gc2053_probe(struct i2c_client *client,
 	struct v4l2_subdev *sd;
 	char facing[2];
 	int ret;
+	const char *sync_mode_name = NULL;
 
 	dev_info(dev, "driver version: %02x.%02x.%02x",
 		DRIVER_VERSION >> 16,
@@ -1351,7 +1409,6 @@ static int gc2053_probe(struct i2c_client *client,
 	if (!gc2053)
 		return -ENOMEM;
 
-	gc2053->dev = dev;
 	gc2053->client = client;
 	ret = of_property_read_u32(node, RKMODULE_CAMERA_MODULE_INDEX,
 				   &gc2053->module_index);
@@ -1367,18 +1424,24 @@ static int gc2053_probe(struct i2c_client *client,
 		return -EINVAL;
 	}
 
-        ret = of_property_read_u32(node, "firefly,clkout-enabled-index", &gc2053->clkout_enabled_index);
-        if (ret){
-                dev_err(dev, "could not get firefly,clkout-enabled-index, default output xvclk .");
-                gc2053->clkout_enabled_index = 1;
-        }
+	ret = of_property_read_string(node, RKMODULE_CAMERA_SYNC_MODE,
+				      &sync_mode_name);
+	if (ret) {
+		gc2053->sync_mode = NO_SYNC_MODE;
+		dev_err(dev, "could not get sync mode!\n");
+	} else {
+		if (strcmp(sync_mode_name, RKMODULE_EXTERNAL_MASTER_MODE) == 0)
+			gc2053->sync_mode = EXTERNAL_MASTER_MODE;
+		else if (strcmp(sync_mode_name, RKMODULE_INTERNAL_MASTER_MODE) == 0)
+			gc2053->sync_mode = INTERNAL_MASTER_MODE;
+		else if (strcmp(sync_mode_name, RKMODULE_SLAVE_MODE) == 0)
+			gc2053->sync_mode = SLAVE_MODE;
+	}
 
-	if (gc2053->clkout_enabled_index){
-		gc2053->xvclk = devm_clk_get(&client->dev, "xvclk");
-		if (IS_ERR(gc2053->xvclk)) {
-			dev_err(&client->dev, "Failed to get xvclk\n");
-			return -EINVAL;
-		}
+	gc2053->xvclk = devm_clk_get(&client->dev, "xvclk");
+	if (IS_ERR(gc2053->xvclk)) {
+		dev_err(&client->dev, "Failed to get xvclk\n");
+		return -EINVAL;
 	}
 
 	gc2053->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
