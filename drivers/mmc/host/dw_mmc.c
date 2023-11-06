@@ -1468,7 +1468,7 @@ static void dw_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 {
 	struct dw_mci_slot *slot = mmc_priv(mmc);
 	const struct dw_mci_drv_data *drv_data = slot->host->drv_data;
-	u32 regs;
+	u32 regs, power_off_delay;
 	int ret;
 
 	switch (ios->bus_width) {
@@ -1507,6 +1507,15 @@ static void dw_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
 	switch (ios->power_mode) {
 	case MMC_POWER_UP:
+		if (dw_mci_get_cd(mmc) && !IS_ERR_OR_NULL(slot->host->pinctrl)) {
+			if (!pinctrl_select_state(slot->host->pinctrl, slot->host->idle_state)) {
+				if (device_property_read_u32(slot->host->dev, "power-off-delay-ms",
+				    &power_off_delay))
+					power_off_delay = 200;
+				msleep(power_off_delay);
+			}
+		}
+
 		if (!IS_ERR(mmc->supply.vmmc)) {
 			ret = mmc_regulator_set_ocr(mmc, mmc->supply.vmmc,
 					ios->vdd);
@@ -1523,6 +1532,9 @@ static void dw_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		mci_writel(slot->host, PWREN, regs);
 		break;
 	case MMC_POWER_ON:
+		if (!IS_ERR_OR_NULL(slot->host->pinctrl))
+			pinctrl_select_state(slot->host->pinctrl, slot->host->normal_state);
+
 		if (!slot->host->vqmmc_enabled) {
 			if (!IS_ERR(mmc->supply.vqmmc)) {
 				ret = regulator_enable(mmc->supply.vqmmc);
@@ -1547,6 +1559,9 @@ static void dw_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
 		break;
 	case MMC_POWER_OFF:
+		if (!IS_ERR_OR_NULL(slot->host->pinctrl))
+			pinctrl_select_state(slot->host->pinctrl, slot->host->idle_state);
+
 		/* Turn clock off before power goes down */
 		dw_mci_setup_bus(slot, false);
 
@@ -3260,6 +3275,22 @@ static struct dw_mci_board *dw_mci_parse_dt(struct dw_mci *host)
 		ret = drv_data->parse_dt(host);
 		if (ret)
 			return ERR_PTR(ret);
+	}
+
+	host->pinctrl = devm_pinctrl_get(host->dev);
+	if (!IS_ERR(host->pinctrl)) {
+		host->normal_state = pinctrl_lookup_state(host->pinctrl, "normal");
+		if (IS_ERR(host->normal_state))
+			dev_warn(dev, "No normal pinctrl state\n");
+
+		host->idle_state = pinctrl_lookup_state(host->pinctrl, "idle");
+		if (IS_ERR(host->idle_state))
+			dev_warn(dev, "No idle pinctrl state\n");
+
+		if (!IS_ERR(host->normal_state) && !IS_ERR(host->idle_state))
+			pinctrl_select_state(host->pinctrl, host->idle_state);
+		else
+			host->pinctrl = NULL;
 	}
 
 	return pdata;
