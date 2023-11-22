@@ -480,3 +480,17 @@
     status = "okay"; // USB3.1/SATA/PCIe Combo PHY
 
 };
+
+&bt_sco {
+	status = "okay";
+};
+
+&bt_sound {
+	status = "okay";
+};
+
+&i2s1_8ch {
+	status = "okay";
+	pinctrl-0 = <&i2s1m0_lrck &i2s1m0_sclk &i2s1m0_sdi0 &i2s1m0_sdo0>;
+	rockchip,bclk-fs = <32>;
+};

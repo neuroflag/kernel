@@ -26,6 +26,27 @@
 		};
 	};
 
+	bt_sco: bt-sco {
+		status = "disabled";
+		compatible = "delta,dfbmcs320";
+		#sound-dai-cells = <1>;
+	};
+
+	bt_sound: bt-sound {
+		status = "disabled";
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "dsp_a";
+		simple-audio-card,bitclock-inversion = <0>;
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,name = "rockchip,bt";
+		simple-audio-card,cpu {
+			sound-dai = <&i2s1_8ch>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&bt_sco 1>;
+		};
+	};
+
 	hdmi0_sound: hdmi0-sound {
 		status = "disabled";
 		compatible = "rockchip,hdmi";
