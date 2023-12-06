@@ -9,7 +9,7 @@
 #include "rk3588-diff.dtsi"
 
 #define M2_SATA_OR_PCIE 1 /*1 = SATA , 0 = PCIe */
-#define CAN1_OR_UART3 1 /*1 = CAN1 , 0 = UART3 */
+#define CAN1_OR_UART3 0 /*1 = CAN1 , 0 = UART3 */
 
  / {
  	chosen: chosen {
