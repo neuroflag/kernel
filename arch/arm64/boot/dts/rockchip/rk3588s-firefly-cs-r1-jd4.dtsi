@@ -7,10 +7,6 @@
 #include "rk3588-firefly-port.dtsi"
 
 / {
-	chosen: chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xfeb50000 console=ttyFIQ0 irqchip.gicv3_pseudo_nmi=0 root=PARTLABEL=rootfs rootfstype=ext4 ro rootwait overlayroot=device:dev=PARTLABEL=userdata,fstype=ext4,mkfs=1 coherent_pool=1m systemd.gpt_auto=0 cgroup_enable=memory swapaccount=1";
-	};
-
 	firefly_leds: leds {
 		power_led: power {
 			gpios = <&gpio4 RK_PA3 GPIO_ACTIVE_HIGH>;//blue led
