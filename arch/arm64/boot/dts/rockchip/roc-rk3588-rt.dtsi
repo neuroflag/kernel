@@ -10,6 +10,22 @@
  
 
  / {
+	/* "Check-Version" is for compatible with multiple devices. Delete it if you do not need it */
+        check_version: check-version {
+                compatible = "check-version";
+		dtb-name = "roc-rk3588-rt";
+                u-boot,dm-pre-reloc;
+                io-channels = <&saradc 4>;
+                version-num = <3>;
+                version-adc-range0 = <1800 2200>;
+                version-dtb-path0 = "ext";
+                version-adc-range1 = <1200 1500>;
+                version-dtb-path1 = "10g-ext";
+                //version-adc-range2 = <3950 4150>;
+                //version-dtb-path2 = "v13";
+		//status = "disabled";
+        };
+
 	vcc3v3_pcie20_eth0: vcc3v3-pcie20-eth0 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc3v3_pcie20_eth0";
