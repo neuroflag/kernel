@@ -195,5 +195,14 @@
     };
 };
 
+&sata2 {
+	status = "ok";
+	assigned-clock-rates = <24000000>;
+};
+
+&pcie2x1 {
+	status = "disabled";
+};
+
 /delete-node/ &vcc3v3_lcd0_n;
 /delete-node/ &vcc3v3_lcd1_n;
