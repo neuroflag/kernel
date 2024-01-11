@@ -103,6 +103,10 @@
         gpio = <&pca9555 PCA_IO1_1 GPIO_ACTIVE_HIGH>;
         regulator-always-on;
     };
+
+    fiq-debugger {
+        rockchip,baudrate = <115200>;  /* Only 115200 and 1500000 */
+    };
 };
 
 &lvds {
