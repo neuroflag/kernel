@@ -13,3 +13,16 @@
 	model = "Neuroflag RK3588 (Linux)";
 	compatible = "rockchip,rk3588-firefly-aio-3588q-edp-nv156fhm-t06", "rockchip,rk3588";
 };
+
+// Enable NVMe, Disable SATA
+// See rk3588-firefly-aio-3588q.dtsi
+
+&sata0 {
+	status = "disabled";
+};
+
+&pcie2x1l2 {
+	reset-gpios = <&pca9555 PCA_IO1_6 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc_sata_pwr_en>;
+	status = "okay";
+};
