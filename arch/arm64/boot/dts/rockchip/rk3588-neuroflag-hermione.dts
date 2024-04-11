@@ -10,8 +10,8 @@
 #include "rk3588-firefly-aio-3588q-edp_NV156FHM-T06.dtsi"
 
 / {
-	model = "Neuroflag RK3588 (Linux)";
-	compatible = "rockchip,rk3588-firefly-aio-3588q-edp-nv156fhm-t06", "rockchip,rk3588";
+	model = "Neuroflag Hermione RK3588 (Linux)";
+	compatible = "rockchip,rk3588-neuroflag-hermione", "rockchip,rk3588";
 };
 
 // Enable NVMe, Disable SATA
