@@ -12,6 +12,87 @@
 / {
 	model = "Neuroflag Hermione RK3588 (Linux)";
 	compatible = "rockchip,rk3588-neuroflag-hermione", "rockchip,rk3588";
+
+	rotary-board-keys {
+		compatible = "gpio-keys";
+		// Should define pins together with driver
+		// PCA9555 doesn't need pinctrl
+		// pinctrl-names = "default";
+		// pinctrl-0 = <&rotary_key_pins>;
+		status = "ok";
+
+		left-rotary-key {
+			label = "left-rotary-key";
+			linux,code = <KEY_PROG1>;
+			gpios = <&rotary_pca9555 PCA_IO1_2 GPIO_ACTIVE_LOW>;
+			interrupt-parent = <&rotary_pca9555>;
+			interrupts = <PCA_IO1_2 IRQ_TYPE_EDGE_BOTH>;
+			wakeup-source;
+			status = "ok";
+		};
+
+		center-rotary-key {
+			label = "center-rotary-key";
+			linux,code = <KEY_PROG2>;
+			gpios = <&rotary_pca9555 PCA_IO0_0 GPIO_ACTIVE_LOW>;
+			interrupt-parent = <&rotary_pca9555>;
+			interrupts = <PCA_IO0_0 IRQ_TYPE_EDGE_BOTH>;
+			wakeup-source;
+			status = "ok";
+		};
+
+		right-rotary-key {
+			label = "right-rotary-key";
+			linux,code = <KEY_PROG3>;
+			gpios = <&rotary_pca9555 PCA_IO1_6 GPIO_ACTIVE_LOW>;
+			interrupt-parent = <&rotary_pca9555>;
+			interrupts = <PCA_IO1_6 IRQ_TYPE_EDGE_BOTH>;
+			wakeup-source;
+			status = "ok";
+		};
+	};
+
+	left-rotary-encoder {
+		compatible = "rotary-encoder";
+		gpios = <&rotary_pca9555 PCA_IO1_1 GPIO_ACTIVE_LOW>, <&rotary_pca9555 PCA_IO1_0 GPIO_ACTIVE_LOW>;
+		linux,axis = <0>;
+		rotary-encoder,encoding = "gray";
+		rotary-encoder,relative-axis;
+		rotary-encoder,steps-per-period = <2>;
+		// PCA9555 doesn't need pinctrl
+		// pinctrl-names = "default";
+		// pinctrl-0 = <&left_rotary_encoder_pins>;
+		interrupt-parent = <&rotary_pca9555>;
+		status = "ok";
+	};
+
+	center-rotary-encoder {
+		compatible = "rotary-encoder";
+		gpios = <&rotary_pca9555 PCA_IO0_1 GPIO_ACTIVE_LOW>, <&rotary_pca9555 PCA_IO0_2 GPIO_ACTIVE_LOW>;
+		linux,axis = <0>;
+		rotary-encoder,encoding = "gray";
+		rotary-encoder,relative-axis;
+		rotary-encoder,steps-per-period = <2>;
+		// PCA9555 doesn't need pinctrl
+		// pinctrl-names = "default";
+		// pinctrl-0 = <&center_rotary_encoder_pins>;
+		interrupt-parent = <&rotary_pca9555>;
+		status = "ok";
+	};
+
+	right-rotary-encoder {
+		compatible = "rotary-encoder";
+		gpios = <&rotary_pca9555 PCA_IO1_5 GPIO_ACTIVE_LOW>, <&rotary_pca9555 PCA_IO1_4 GPIO_ACTIVE_LOW>;
+		linux,axis = <0>;
+		rotary-encoder,encoding = "gray";
+		rotary-encoder,relative-axis;
+		rotary-encoder,steps-per-period = <2>;
+		// PCA9555 doesn't need pinctrl
+		// pinctrl-names = "default";
+		// pinctrl-0 = <&right_rotary_encoder_pins>;
+		interrupt-parent = <&rotary_pca9555>;
+		status = "ok";
+	};
 };
 
 // Enable NVMe, Disable SATA
@@ -25,4 +106,29 @@
 	reset-gpios = <&pca9555 PCA_IO1_6 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc_sata_pwr_en>;
 	status = "okay";
+};
+
+&i2c1 {
+	rotary_pca9555: gpio@24 {
+		compatible = "nxp,pca9555";
+		reg = <0x24>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <RK_PA6 IRQ_TYPE_EDGE_BOTH>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&rotary_pca9555_int_pins>;
+		status = "okay";
+	};
+};
+
+&pinctrl {
+	rotary-board {
+		/omit-if-no-ref/
+		rotary_pca9555_int_pins: rotary-pca9555-int-pins {
+			rockchip,pins = <3 RK_PA6 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
 };
